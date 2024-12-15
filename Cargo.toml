@@ -1,0 +1,10 @@
+[package]
+name = "solar-inference"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0.94"
+axum = "0.7.9"
+tch = "0.18.1"
+tokio = {version = "1.42.0" ,features =["full"]}

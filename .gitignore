@@ -1,0 +1,4 @@
+/target
+/venv
+/models
+.DS_Store
