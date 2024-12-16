@@ -1,3 +1,4 @@
+mod api;
 mod handlers;
 mod model;
 mod types;
@@ -9,10 +10,10 @@ async fn main() -> anyhow::Result<()> {
     let device = tch::Device::Cpu;
 
     let models = model::Models {
-        winter: model::load_model("./models/model_winter.pt", device)?,
-        summer: model::load_model("./models/model_summer.pt", device)?,
-        spring: model::load_model("./models/model_spring.pt", device)?,
-        autumn: model::load_model("./models/model_autumn.pt", device)?,
+        winter: model::load_model("./models/winter.pt", device)?,
+        summer: model::load_model("./models/summer.pt", device)?,
+        spring: model::load_model("./models/spring.pt", device)?,
+        autumn: model::load_model("./models/autumn.pt", device)?,
     };
     let state = Arc::new(model::AppState { device, models });
     let app = Router::new()

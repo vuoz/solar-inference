@@ -15,6 +15,5 @@ pub(crate) struct Models {
 }
 
 pub(crate) fn load_model(path: &str, device: tch::Device) -> anyhow::Result<tch::CModule> {
-    Ok(CModule::load(path)?)
-    //Ok(CModule::load_on_device(path, device)?)
+    Ok(CModule::load_on_device(path, device)?)
 }
