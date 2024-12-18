@@ -1,5 +1,3 @@
-use reqwest::{Method, Request, RequestBuilder};
-
 use crate::types;
 use crate::types::ForecastResponse;
 
