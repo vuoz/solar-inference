@@ -4,6 +4,11 @@ Please create a venv
 python -m venv venv
 ```
 
+Install torch and numpy
+```
+pip install -r requirements.txt
+```
+
 Activate the venv
 ```
 . ./venv/bin/activate
