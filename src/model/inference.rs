@@ -2,6 +2,7 @@ use anyhow::anyhow;
 use chrono::{Datelike, NaiveDate};
 
 use crate::types;
+use tch::Kind;
 
 use super::AppState;
 use crate::types::Season;
@@ -12,6 +13,7 @@ impl AppState {
         date: &str,
         data: types::ForecastResponse,
     ) -> anyhow::Result<tch::Tensor> {
+        println!("device {:?}", self.device);
         let format = "%Y-%m-%d";
         let val = match NaiveDate::parse_from_str(date, format) {
             Ok(val) => val,
@@ -25,7 +27,7 @@ impl AppState {
             9..=11 => Season::Autumn,
             _ => return Err(anyhow!("Invalid Month")),
         };
-        let input = data.to_feature_vec()?.unsqueeze(0).to(self.device);
+        let input = data.to_feature_vec()?.unsqueeze(0).to_device(self.device);
         let hours = input.split(1, 1);
         self.forward(season, hours)
     }
@@ -39,15 +41,20 @@ impl AppState {
                 let model = &self.models.spring;
                 let mut past_out = Vec::with_capacity(24);
 
-                let mut output = tch::Tensor::new();
+                //let mut output = tch::Tensor::new().to_device(self.device);
+                let mut output = tch::Tensor::empty(288, (Kind::Float, self.device));
                 for (i, _) in hours.iter().enumerate() {
-                    let input_window = self.create_window_input(&hours, i)?;
-                    let out_window = self.create_window_prev_out(&past_out, i)?;
+                    let input_window = self.create_window_input(&hours, i)?.to_device(self.device);
+                    let out_window = self
+                        .create_window_prev_out(&past_out, i)?
+                        .to_device(self.device);
 
-                    let model_out = model.forward_ts(&[input_window, out_window])?;
+                    let model_out = model
+                        .forward_ts(&[input_window, out_window])?
+                        .to_device(self.device);
 
                     past_out.push(model_out.copy());
-                    output = tch::Tensor::cat(&[output, model_out], 1);
+                    output = tch::Tensor::cat(&[output, model_out], 1).to_device(self.device);
                 }
 
                 Ok(output)
@@ -56,15 +63,19 @@ impl AppState {
                 let mut past_out = Vec::with_capacity(24);
                 let model = &self.models.autumn;
 
-                let mut output = tch::Tensor::new();
+                let mut output = tch::Tensor::empty(288, (Kind::Float, self.device));
                 for (i, _) in hours.iter().enumerate() {
-                    let input_window = self.create_window_input(&hours, i)?;
-                    let out_window = self.create_window_prev_out(&past_out, i)?;
+                    let input_window = self.create_window_input(&hours, i)?.to_device(self.device);
+                    let out_window = self
+                        .create_window_prev_out(&past_out, i)?
+                        .to_device(self.device);
 
-                    let model_out = model.forward_ts(&[input_window, out_window])?;
+                    let model_out = model
+                        .forward_ts(&[input_window, out_window])?
+                        .to_device(self.device);
 
                     past_out.push(model_out.copy());
-                    output = tch::Tensor::cat(&[output, model_out], 1);
+                    output = tch::Tensor::cat(&[output, model_out], 1).to_device(self.device);
                 }
 
                 Ok(output)
@@ -73,15 +84,19 @@ impl AppState {
                 let mut past_out = Vec::with_capacity(24);
                 let model = &self.models.winter;
 
-                let mut output = tch::Tensor::new();
+                let mut output = tch::Tensor::empty(288, (Kind::Float, self.device));
                 for (i, _) in hours.iter().enumerate() {
-                    let input_window = self.create_window_input(&hours, i)?;
-                    let out_window = self.create_window_prev_out(&past_out, i)?;
+                    let input_window = self.create_window_input(&hours, i)?.to_device(self.device);
+                    let out_window = self
+                        .create_window_prev_out(&past_out, i)?
+                        .to_device(self.device);
 
-                    let model_out = model.forward_ts(&[input_window, out_window])?;
+                    let model_out = model
+                        .forward_ts(&[input_window, out_window])?
+                        .to_device(self.device);
 
                     past_out.push(model_out.copy());
-                    output = tch::Tensor::cat(&[output, model_out], 1);
+                    output = tch::Tensor::cat(&[output, model_out], 1).to_device(self.device);
                 }
 
                 Ok(output)
@@ -90,15 +105,19 @@ impl AppState {
                 let mut past_out = Vec::with_capacity(24);
                 let model = &self.models.summer;
 
-                let mut output = tch::Tensor::new();
+                let mut output = tch::Tensor::empty(288, (Kind::Float, self.device));
                 for (i, _) in hours.iter().enumerate() {
-                    let input_window = self.create_window_input(&hours, i)?;
-                    let out_window = self.create_window_prev_out(&past_out, i)?;
+                    let input_window = self.create_window_input(&hours, i)?.to_device(self.device);
+                    let out_window = self
+                        .create_window_prev_out(&past_out, i)?
+                        .to_device(self.device);
 
-                    let model_out = model.forward_ts(&[input_window, out_window])?;
+                    let model_out = model
+                        .forward_ts(&[input_window, out_window])?
+                        .to_device(self.device);
 
                     past_out.push(model_out.copy());
-                    output = tch::Tensor::cat(&[output, model_out], 1);
+                    output = tch::Tensor::cat(&[output, model_out], 1).to_device(self.device);
                 }
                 Ok(output)
             }
@@ -106,7 +125,7 @@ impl AppState {
     }
     fn create_window_input(&self, hours: &[tch::Tensor], i: usize) -> anyhow::Result<tch::Tensor> {
         let hour_0 = hours.first().ok_or(anyhow!("hour 0 does not exist"))?;
-        let mut window = tch::Tensor::new();
+        let mut window = tch::Tensor::empty([1, 5, 13], (Kind::Float, self.device));
 
         // first we get the prev 4 hours
         for x in (0..4).rev() {
@@ -116,35 +135,48 @@ impl AppState {
             }
             match hours.get(i - x) {
                 // i dont like hte tensor copy here
-                Some(v) => window = tch::Tensor::cat(&[window, v.copy()], 1),
-                None => window = tch::Tensor::cat(&[window, tch::Tensor::zeros_like(hour_0)], 1),
+                Some(v) => window = tch::Tensor::cat(&[window, v.copy()], 1).to_device(self.device),
+                None => {
+                    window = tch::Tensor::cat(&[window, tch::Tensor::zeros_like(hour_0)], 1)
+                        .to_device(self.device)
+                }
             };
         }
         // then we add the next hour in the future
         match hours.get(i + 1) {
-            Some(v) => window = tch::Tensor::cat(&[window, v.copy()], 1),
-            None => window = tch::Tensor::cat(&[window, tch::Tensor::zeros_like(hour_0)], 1),
+            Some(v) => window = tch::Tensor::cat(&[window, v.copy()], 1).to_device(self.device),
+            None => {
+                window = tch::Tensor::cat(&[window, tch::Tensor::zeros_like(hour_0)], 1)
+                    .to_device(self.device)
+            }
         }
 
-        Ok(window.view([window.size()[0], -1]))
+        Ok(window.view([window.size()[0], -1]).to_device(self.device))
     }
     fn create_window_prev_out(
         &self,
         prev_out: &[tch::Tensor],
         i: usize,
     ) -> anyhow::Result<tch::Tensor> {
-        let prev_0 = prev_out.get(0).ok_or(anyhow!(" prev 0 is None"))?;
+        let mut window = tch::Tensor::empty([1, 4, 12], (Kind::Float, self.device));
+        let prev_0 = match prev_out.first() {
+            None => &tch::Tensor::zeros([1, 1, 12], (Kind::Float, self.device)),
+            Some(prev_0) => prev_0,
+        };
 
-        let mut window = tch::Tensor::new();
         for x in (0..4).rev() {
             if (i as i32 - x as i32) < 0 {
-                window = tch::Tensor::cat(&[window, tch::Tensor::zeros_like(prev_0)], 1);
+                window = tch::Tensor::cat(&[window, tch::Tensor::zeros_like(prev_0)], 1)
+                    .to_device(self.device);
                 continue;
             }
             match prev_out.get(i - x) {
-                // i dont like hte tensor copy here
-                Some(v) => window = tch::Tensor::cat(&[window, v.copy()], 1),
-                None => window = tch::Tensor::cat(&[window, tch::Tensor::zeros_like(prev_0)], 1),
+                // i dont like the tensor copy here
+                Some(v) => window = tch::Tensor::cat(&[window, v.copy()], 1).to_device(self.device),
+                None => {
+                    window = tch::Tensor::cat(&[window, tch::Tensor::zeros_like(prev_0)], 1)
+                        .to_device(self.device)
+                }
             }
         }
         Ok(window)

@@ -1,3 +1,5 @@
+use std::str;
+
 use crate::types;
 use crate::types::ForecastResponse;
 
@@ -11,27 +13,27 @@ pub(crate) async fn get_data(
         start_date: String::from(day),
         end_date: String::from(day),
         hourly: vec![
-            "temperature_2m".to_string(),
-            "relative_humidity_2m".to_string(),
-            "precipitation".to_string(),
-            "cloud_cover".to_string(),
-            "wind_speed_10m".to_string(),
-            "sunshine_duration".to_string(),
-            "diffuse_radiation".to_string(),
-            "direct_normal_irradiance".to_string(),
-            "global_tilted_irradiance".to_string(),
-            "diffuse_radiation_instant".to_string(),
-            "direct_normal_irradiance_instant".to_string(),
-            "global_tilted_irradiance_instant".to_string(),
+            String::from("temperature_2m"),
+            String::from("relative_humidity_2m"),
+            String::from("precipitation"),
+            String::from("cloud_cover"),
+            String::from("wind_speed_10m"),
+            String::from("sunshine_duration"),
+            String::from("diffuse_radiation"),
+            String::from("direct_normal_irradiance"),
+            String::from("global_tilted_irradiance"),
+            String::from("diffuse_radiation_instant"),
+            String::from("direct_normal_irradiance_instant"),
+            String::from("global_tilted_irradiance_instant"),
         ]
         .join(","),
-        daily: vec![
-            "sunrise".to_string(),
-            "sunset".to_string(),
-            "sunshine_duration".to_string(),
+        daily: [
+            String::from("sunrise"),
+            String::from("sunset"),
+            String::from("sunshine_duration"),
         ]
         .join(","),
-        timezone: "Europe/Berlin".to_string(),
+        timezone: String::from("Europe/Berlin"),
     };
 
     let client = reqwest::Client::new();

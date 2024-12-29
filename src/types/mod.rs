@@ -10,7 +10,7 @@ use tch::Tensor;
 #[derive(Serialize, Deserialize)]
 pub(crate) struct InferenceRequest {
     pub date: String,
-    pub cooridinates: Coords,
+    pub coordinates: Coords,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -245,4 +245,8 @@ where
     fn from(err: E) -> Self {
         Self(err.into())
     }
+}
+#[derive(Serialize, Deserialize)]
+pub struct InferenceResponse {
+    pub data: Vec<f32>,
 }
