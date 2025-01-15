@@ -2,8 +2,8 @@ use crate::api;
 use crate::model;
 use crate::types;
 use crate::types::AppError;
-use anyhow::Result;
 use axum::{extract::State, response::IntoResponse, Json};
+use core::result::Result;
 use std::sync::Arc;
 
 pub(crate) async fn handle_inference(
@@ -17,8 +17,4 @@ pub(crate) async fn handle_inference(
     let mut des = vec![0.0f32; len];
     res.copy_data(&mut des, len);
     Ok(Json(types::InferenceResponse { data: des }).into_response())
-}
-
-pub(crate) async fn root() -> &'static str {
-    "Hello World"
 }

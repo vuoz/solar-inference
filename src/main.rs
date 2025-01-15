@@ -8,7 +8,6 @@ use std::sync::Arc;
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let device = tch::Device::Cpu;
-    println!("device: {:?}", device);
 
     let models = model::Models {
         winter: model::load_model("./models/winter.pt", device)?,
@@ -18,7 +17,6 @@ async fn main() -> anyhow::Result<()> {
     };
     let state = Arc::new(model::AppState { device, models });
     let app = Router::new()
-        .route("/", get(handlers::root))
         .route("/inference", get(handlers::handle_inference))
         .with_state(state);
     let listener = tokio::net::TcpListener::bind("0.0.0.0:4444").await?;

@@ -144,12 +144,14 @@ impl ForecastResponse {
         }
 
         // Flatten the 2D vector into a 1D vector
-        let flattened: Vec<f64> = weather_dict.iter().flatten().map(|v| *v).collect();
+        let flattened: Vec<f64> = weather_dict.iter().flatten().copied().collect();
 
         // Create a tensor with shape [24, 13]
-        Ok(Tensor::from_slice(&flattened).view([24, 13]))
+        Ok(Tensor::from_slice(&flattened)
+            .view([24, 13])
+            .to_kind(tch::Kind::Float))
     }
-    fn calc_day_of_season(&self, inpt: &String) -> anyhow::Result<u32> {
+    fn calc_day_of_season(&self, inpt: &str) -> anyhow::Result<u32> {
         let format = "%Y-%m-%d";
         let val = match NaiveDate::parse_from_str(inpt, format) {
             Ok(val) => val,
@@ -229,12 +231,26 @@ pub enum Season {
     Spring,
     Autumn,
 }
-
+#[derive(Serialize, Deserialize)]
+pub struct ErrResponse<'a> {
+    message: &'a str,
+}
+#[derive(Debug)]
 pub(crate) struct AppError(pub anyhow::Error);
 
 impl IntoResponse for AppError {
     fn into_response(self) -> axum::response::Response {
-        (StatusCode::INTERNAL_SERVER_ERROR, format!("{}", self.0)).into_response()
+        eprintln!("An error occured: \n--------\n{:?}\n--------", self.0);
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            match serde_json::to_string(&ErrResponse {
+                message: "internal server error",
+            }) {
+                Ok(v) => v,
+                Err(_) => String::from("error"),
+            },
+        )
+            .into_response()
     }
 }
 
