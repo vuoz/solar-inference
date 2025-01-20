@@ -19,7 +19,7 @@ pub(crate) struct Coords {
     pub lat: f64,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub struct Params {
     pub latitude: String,
     pub longitude: String,
@@ -30,7 +30,7 @@ pub struct Params {
     pub timezone: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Deserialize)]
 pub struct ForecastResponse {
     pub latitude: f64,
     pub longitude: f64,
@@ -176,7 +176,7 @@ impl ForecastResponse {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Deserialize)]
 pub struct HourlyUnits {
     pub time: String,
     pub temperature_2m: String,
@@ -193,7 +193,7 @@ pub struct HourlyUnits {
     pub global_tilted_irradiance_instant: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Deserialize)]
 pub struct HourlyData {
     pub time: Vec<String>,
     pub temperature_2m: Vec<f64>,
@@ -210,7 +210,7 @@ pub struct HourlyData {
     pub global_tilted_irradiance_instant: Vec<f64>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Deserialize)]
 pub struct DailyUnits {
     pub time: String,
     pub sunrise: String,
@@ -218,7 +218,7 @@ pub struct DailyUnits {
     pub sunshine_duration: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Deserialize)]
 pub struct DailyData {
     pub time: Vec<String>,
     pub sunrise: Vec<String>,

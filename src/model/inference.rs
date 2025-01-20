@@ -130,7 +130,6 @@ fn forward_inner(
 
         past_out.push(model_out.copy());
     }
-    let combined_tensor = tch::Tensor::concat(&past_out, 0);
-
+    let combined_tensor = tch::Tensor::concat(&past_out, 1).squeeze();
     Ok(combined_tensor)
 }
